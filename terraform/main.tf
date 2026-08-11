@@ -35,7 +35,7 @@ resource "aws_security_group" "tc_db" {
 resource "aws_db_instance" "tc" {
   identifier     = "tc-oficina-db"
   engine         = "postgres"
-  engine_version = "15.7"
+  engine_version = "15.18"
 
   instance_class = var.db_instance_class
 
