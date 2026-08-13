@@ -10,8 +10,8 @@ Este repositório provisiona e gerencia o **Amazon RDS PostgreSQL**:
 - Multi-AZ (alta disponibilidade)
 - Backup automático com retenção configurável
 - Storage criptografado (gp3)
-- Subnet group privado (dentro da VPC do cluster EKS)
-- Security group com acesso restrito
+- Subnet group privado (dentro da VPC do cluster k3s)
+- Security group com acesso restrito (5432 apenas para CIDRs da VPC)
 
 > A infraestrutura do cluster Kubernetes vive no repositório [tc-oficina-infra-k8s](../tc-oficina-infra-k8s).
 
@@ -35,9 +35,9 @@ tc-oficina-infra-db/
 
 ## Pré-requisitos
 
-- Cluster EKS provisionado (VPC com tag `Name = tc-oficina-vpc`)
+- VPC do `tc-oficina-infra-k8s` provisionada (subnets privadas com tag `Name = tc-oficina-vpc`)
 - Secrets no GitHub: `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY` e var `AWS_REGION`
-- Senha do banco informada via `tfvars` ou variável de ambiente
+- Senha do banco informada via `DB_PASSWORD` (secret shareada com app e lambda)
 
 ## Como executar
 
@@ -65,9 +65,10 @@ O workflow em `.github/workflows/ci.yml`:
 
 ```mermaid
 flowchart TB
-  APP[App no EKS] -->|JDBC 5432| RDS[(RDS PostgreSQL 15<br/>Multi-AZ)]
+  APP[App no k3s] -->|JDBC 5432| RDS[(RDS PostgreSQL 15<br/>Multi-AZ)]
+  LAMBDA[Auth Lambda na VPC] -->|JDBC 5432| RDS
   RDS --> SNAPSHOT[Backup automático]
-  RDS --> SG[Security Group restrito]
+  RDS --> SG[Security Group restrito<br/>5432 apenas da VPC]
 
   style RDS fill:#e8f5e9,stroke:#1b5e20
 ```
